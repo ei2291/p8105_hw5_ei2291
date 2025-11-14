@@ -102,7 +102,7 @@ sim_one(0)
 ```
 
 running 5,000 simulations for mu = 1,2,3,4,5,6:
-```{r}
+```{r, cache=TRUE}
 sim_results=expand_grid(
   true_mu = 0:6,
   iter = 1:5000
@@ -170,10 +170,33 @@ est_results |>
 No, the sample average of estimate mean across tests for when null is rejected is not equal to the true mean, especially when the true mean value (μ) is small. When the μ is small, the test only rejects when the average estimated μ is very large, so now the average of estimate μ in the rejected sample is biased upward, which is a form of selection bias. But, when μ is large, more rejection happens, and the average estimate μ becomes closer to the true μ.
 
 
+## Problem 3
 
+read data
+```{r}
+homicides = 
+  read_csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv") |> 
+  janitor::clean_names()
+```
 
+The dataset has 52,179 recorded homicides from 50 U.S. cities, and each row is one homicide case.The data was colleced by The Washington Post from public records and police departments. The key variables are city, state, reported date, location (`lat` and `long`), victim information such as first, and last names, age, sex, race, and disposition.
 
+Creating a `city_state` variable and summarizing
+```{r}
+homicide_summary=
+  homicides |> 
+  mutate(
+    city_state = str_c(city, ",", state),
+    unsolved=disposition %in% c("Closed without arrest", "Open/No arrest")
+  ) |> 
+  group_by(city_state) |> 
+  summarize(
+    total=n(),
+    unsolved=sum(unsolved)
+  )
 
+homicide_summary
+```
 
 
 

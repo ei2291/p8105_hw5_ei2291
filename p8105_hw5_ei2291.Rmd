@@ -198,6 +198,83 @@ homicide_summary=
 homicide_summary
 ```
 
+Run `prop.test` for baltimore and get the estimate with CI
+
+```{r}
+baltimore = 
+  homicide_summary |> 
+  filter(city_state== "Baltimore,MD")
+```
+test:
+```{r}
+baltimore_test=
+  prop.test(baltimore$unsolved, baltimore$total)
+```
+Making it tidy:
+```{r}
+baltimore_tidy=
+  tidy(baltimore_test)
+baltimore_tidy |> 
+  select(estimate, conf.low, conf.high)
+```
+Based on the output, about 64.6% with a 95% CI (0.63 to 0.66) of homicides in baltimore are unsolved.
+
+Run a `prop.test` for every city
+```{r}
+city_results=
+  homicide_summary |> 
+  mutate(
+    test= map2(unsolved, total, \(u, n) prop.test(u,n)),
+    tidy_test= map(test, tidy)
+  ) |> 
+  unnest(tidy_test)
+```
+
+```{r}
+city_results_small=
+  city_results |> 
+  select(city_state, total, unsolved, estimate, conf.low, conf.high)
+```
+
+
+Plot
+```{r}
+city_results_small |> 
+  mutate(city_state= fct_reorder(city_state, estimate)) |> 
+  ggplot(aes(x=estimate, y=city_state))+
+  geom_point(color="blue")+
+  geom_errorbar(
+    aes(xmin=conf.low, xmax = conf.high),
+    width =0.2
+  )+
+  labs(
+    title = "Unsolved homicide proportion with 95% CI by city",
+    x= "Proportion of unsolved homicides",
+    y = "City"
+  )+
+  coord_flip()+
+  theme_minimal()+
+    theme(
+      axis.text.x=element_text(angle = 90, vjust=0.5, hjust=1, size=6)
+    )
+```
+
+Based on the plot we see that there is a range in the proportion of unsolved homicides. Some city have low proportion(e.g.Richmond,VA), while others have higher unsolved proportions(e.g.Chicago, IL).Overall though many cities have around 40 to 60% of unsolved homicide proportions. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
